@@ -22,12 +22,19 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({ photo1, photo2, onChange1, on
         const MAX_SIZE = 1024;
         let width = img.width;
         let height = img.height;
-        if (width > height && width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
-        else if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
-        canvas.width = width; canvas.height = height;
+        if (width > height && width > MAX_SIZE) { 
+          height *= MAX_SIZE / width; 
+          width = MAX_SIZE; 
+        } else if (height > MAX_SIZE) { 
+          width *= MAX_SIZE / height; 
+          height = MAX_SIZE; 
+        }
+        canvas.width = width; 
+        canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx?.drawImage(img, 0, 0, width, height);
-        const base64 = canvas.toDataURL('image/jpeg', 0.7);
+        // Calidad 0.6 para que las fotos de inspección no pesen demasiado en la base de datos
+        const base64 = canvas.toDataURL('image/jpeg', 0.6);
         if (!photo1) onChange1(base64); else onChange2(base64);
       };
       img.src = event.target?.result as string;
@@ -38,14 +45,66 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({ photo1, photo2, onChange1, on
   return (
     <div className="space-y-4">
       <div className="flex gap-2">
-        <button type="button" onClick={() => cameraInputRef.current?.click()} className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white p-3 rounded-xl font-bold text-xs"><Camera size={18}/> CÁMARA</button>
-        <button type="button" onClick={() => fileInputRef.current?.click()} className="flex items-center justify-center bg-white border border-blue-200 text-blue-600 p-3 rounded-xl"><Upload size={18}/></button>
+        {/* El atributo capture="environment" fuerza a los celulares a abrir la cámara trasera automáticamente */}
+        <button 
+          type="button" 
+          onClick={() => cameraInputRef.current?.click()} 
+          className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white p-4 rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-lg shadow-blue-200 active:scale-95 transition-all"
+        >
+          <Camera size={18}/> 
+          Capturar Evidencia
+        </button>
+        <button 
+          type="button" 
+          onClick={() => fileInputRef.current?.click()} 
+          className="flex items-center justify-center bg-white border-2 border-blue-100 text-blue-600 p-4 rounded-2xl hover:bg-blue-50 transition-all"
+        >
+          <Upload size={18}/>
+        </button>
       </div>
-      <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
-      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
-      <div className="grid grid-cols-2 gap-3">
-        {photo1 && <div className="relative aspect-square"><img src={photo1} className="w-full h-full object-cover rounded-xl" /><button onClick={() => onChange1(null)} className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full"><X size={12}/></button></div>}
-        {photo2 && <div className="relative aspect-square"><img src={photo2} className="w-full h-full object-cover rounded-xl" /><button onClick={() => onChange2(null)} className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full"><X size={12}/></button></div>}
+
+      {/* Input oculto para cámara trasera directa */}
+      <input 
+        ref={cameraInputRef} 
+        type="file" 
+        accept="image/*" 
+        capture="environment" 
+        className="hidden" 
+        onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} 
+      />
+      
+      {/* Input oculto para galería */}
+      <input 
+        ref={fileInputRef} 
+        type="file" 
+        accept="image/*" 
+        className="hidden" 
+        onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} 
+      />
+
+      <div className="grid grid-cols-2 gap-4">
+        {photo1 && (
+          <div className="relative aspect-video bg-slate-100 rounded-2xl overflow-hidden border-2 border-blue-100 shadow-inner">
+            <img src={photo1} className="w-full h-full object-cover" />
+            <button 
+              onClick={() => onChange1(null)} 
+              className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full shadow-lg hover:bg-red-600 transition-colors"
+            >
+              <X size={14}/>
+            </button>
+          </div>
+        )}
+        {photo2 && (
+          <div className="relative aspect-video bg-slate-100 rounded-2xl overflow-hidden border-2 border-blue-100 shadow-inner">
+            <img src={photo2} className="w-full h-full object-cover" />
+            <button 
+              onClick={() => onChange2(null)} 
+              className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full shadow-lg hover:bg-red-600 transition-colors"
+            >
+              <X size={14}/>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
